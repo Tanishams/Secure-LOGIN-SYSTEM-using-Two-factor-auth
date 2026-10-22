@@ -4,53 +4,526 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login - Secure Login</title>
+
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; min-height: 100vh;
-         display: flex; align-items: center; justify-content: center; }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px;
-          padding: 40px; width: 100%; max-width: 420px; }
-  .logo { text-align: center; margin-bottom: 28px; }
-  .logo span { font-size: 36px; }
-  h2 { color: #f1f5f9; font-size: 22px; text-align: center; margin-bottom: 6px; }
-  .sub { color: #94a3b8; font-size: 13px; text-align: center; margin-bottom: 24px; }
-  label { display: block; color: #cbd5e1; font-size: 13px; margin-bottom: 5px; font-weight: 500; }
-  input { width: 100%; padding: 11px 14px; background: #0f172a; border: 1px solid #334155;
-          border-radius: 8px; color: #f1f5f9; font-size: 14px; margin-bottom: 16px; outline: none; }
-  input:focus { border-color: #3b82f6; }
-  .btn { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none;
-         border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
-  .btn:hover { background: #2563eb; }
-  .link { text-align: center; margin-top: 20px; color: #94a3b8; font-size: 13px; }
-  .link a { color: #3b82f6; text-decoration: none; }
-  .flash { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
-  .flash.error   { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
-  .flash.success { background: #052e16; color: #86efac; border: 1px solid #14532d; }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg: #050b18;
+    --card: rgba(13, 25, 46, 0.88);
+    --border: rgba(56, 189, 248, 0.22);
+    --blue: #3b82f6;
+    --cyan: #22d3ee;
+    --text: #f0f9ff;
+    --muted: #8da8c7;
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+    overflow-x: hidden;
+    isolation: isolate;
+  }
+
+  /* Animated cybersecurity network background */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 15% 20%,
+        rgba(0, 153, 255, 0.15), transparent 28%),
+      radial-gradient(circle at 85% 75%,
+        rgba(34, 211, 238, 0.12), transparent 30%),
+      radial-gradient(circle at 50% 50%,
+        rgba(30, 64, 175, 0.10), transparent 50%),
+      #050b18;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(56, 189, 248, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56, 189, 248, 0.055) 1px, transparent 1px);
+    background-size: 55px 55px;
+    transform: perspective(700px) rotateX(12deg);
+    animation: gridMove 24s linear infinite;
+    mask-image: linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
+  }
+
+  @keyframes gridMove {
+    from { background-position: 0 0; }
+    to   { background-position: 55px 55px; }
+  }
+
+  /* Soft ambient glow behind the login card */
+  .card-wrap {
+    width: 100%;
+    max-width: 430px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 23px;
+    background: linear-gradient(
+      135deg,
+      rgba(34, 211, 238, 0.65),
+      transparent 35%,
+      transparent 65%,
+      rgba(59, 130, 246, 0.65)
+    );
+    filter: blur(16px);
+    opacity: 0.38;
+    z-index: -1;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+  }
+
+  .card-wrap:hover::before {
+    opacity: 0.85;
+    filter: blur(22px);
+  }
+
+  .card {
+    position: relative;
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 38px 36px 32px;
+    width: 100%;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    box-shadow:
+      0 25px 70px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
+    transition:
+      border-color 0.35s ease,
+      transform 0.35s ease,
+      box-shadow 0.35s ease;
+    animation: cardAppear 0.75s ease both;
+  }
+
+  .card:hover {
+    border-color: rgba(34, 211, 238, 0.55);
+    transform: translateY(-3px);
+    box-shadow:
+      0 25px 80px rgba(0, 0, 0, 0.5),
+      0 0 30px rgba(34, 211, 238, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--cyan),
+      var(--blue),
+      transparent
+    );
+    opacity: 0.8;
+  }
+
+  @keyframes cardAppear {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Brand / security icon */
+  .logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+
+  .logo-box {
+    width: 76px;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 22px;
+    font-size: 37px;
+    background: linear-gradient(
+      145deg,
+      rgba(34, 211, 238, 0.13),
+      rgba(59, 130, 246, 0.12)
+    );
+    border: 1px solid rgba(34, 211, 238, 0.28);
+    box-shadow:
+      0 0 30px rgba(34, 211, 238, 0.10),
+      inset 0 0 20px rgba(59, 130, 246, 0.08);
+    animation: iconGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes iconGlow {
+    0%, 100% {
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.10);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(34, 211, 238, 0.25);
+    }
+  }
+
+  h2 {
+    color: var(--text);
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: -0.7px;
+    text-align: center;
+    margin-bottom: 9px;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 29px;
+    line-height: 1.6;
+  }
+
+  .security-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 27px;
+    color: #67e8f9;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.7px;
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    background: #34d399;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.8);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  label {
+    display: block;
+    color: #c8d9ed;
+    font-size: 12px;
+    margin-bottom: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: color 0.25s ease;
+  }
+
+  .field {
+    margin-bottom: 21px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  input {
+    display: block;
+    width: 100%;
+    padding: 14px 15px;
+    background: rgba(3, 10, 24, 0.76);
+    border: 1px solid #293e5b;
+    border-radius: 10px;
+    color: #f0f9ff;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    margin: 0;
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      background 0.25s ease;
+  }
+
+  input::placeholder {
+    color: #627b9c;
+    transition: color 0.25s ease;
+  }
+
+  .field:focus-within label {
+    color: var(--cyan);
+  }
+
+  input:hover {
+    border-color: #3d648c;
+    background: rgba(5, 15, 34, 0.95);
+  }
+
+  input:focus {
+    border-color: var(--cyan);
+    background: rgba(5, 15, 34, 0.98);
+    box-shadow:
+      0 0 0 3px rgba(34, 211, 238, 0.09),
+      0 0 20px rgba(34, 211, 238, 0.08);
+  }
+
+  input:focus::placeholder {
+    color: #8ba5c5;
+  }
+
+  /* Glowing login button */
+  .btn {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 14px;
+    margin-top: 5px;
+    background: linear-gradient(110deg, #2563eb, #0ea5e9);
+    color: #fff;
+    border: 1px solid rgba(125, 211, 252, 0.38);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    box-shadow: 0 5px 18px rgba(37, 99, 235, 0.22);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      background 0.25s ease;
+  }
+
+  .btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 70%;
+    height: 100%;
+    transform: skewX(-25deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.23),
+      transparent
+    );
+    transition: left 0.65s ease;
+  }
+
+  .btn:hover {
+    background: linear-gradient(110deg, #1d4ed8, #0284c7);
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 28px rgba(37, 99, 235, 0.38),
+      0 0 22px rgba(34, 211, 238, 0.22);
+  }
+
+  .btn:hover::before {
+    left: 150%;
+  }
+
+  .btn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.25);
+  }
+
+  .btn:focus-visible,
+  .link a:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+  }
+
+  .link {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .link a {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 3px;
+    transition: color 0.25s ease, text-shadow 0.25s ease;
+  }
+
+  .link a:hover {
+    color: #a5f3fc;
+    text-shadow: 0 0 12px rgba(34, 211, 238, 0.55);
+  }
+
+  /* Flask flash messages: same template logic and categories */
+  .flash {
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 17px;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .flash.error {
+    background: rgba(69, 10, 10, 0.55);
+    color: #fca5a5;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    box-shadow: 0 0 18px rgba(248, 113, 113, 0.06);
+  }
+
+  .flash.success {
+    background: rgba(5, 46, 22, 0.55);
+    color: #86efac;
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    box-shadow: 0 0 18px rgba(74, 222, 128, 0.06);
+  }
+
+  .footer-note {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    margin-top: 27px;
+    padding-top: 19px;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    color: #627b9c;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .footer-note span {
+    color: #67e8f9;
+  }
+
+  @media (max-width: 480px) {
+    body {
+      padding: 18px;
+    }
+
+    .card {
+      padding: 32px 23px 25px;
+      border-radius: 17px;
+    }
+
+    h2 {
+      font-size: 24px;
+    }
+
+    .logo-box {
+      width: 68px;
+      height: 68px;
+      font-size: 33px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 </style>
 </head>
+
 <body>
-<div class="card">
-  <div class="logo"><span>🔐</span></div>
-  <h2>Welcome Back</h2>
-  <p class="sub">Login to your secure account</p>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="flash {{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endwith %}
+<div class="card-wrap">
+  <div class="card">
 
-  <form method="POST" action="/login">
-    <label>Username</label>
-    <input type="text" name="username" placeholder="Enter your username" required autocomplete="off">
+    <div class="logo">
+      <div class="logo-box">🔐</div>
+    </div>
 
-    <label>Password</label>
-    <input type="password" name="password" placeholder="Enter your password" required>
+    <h2>Welcome Back</h2>
+    <p class="sub">Access your account in a secure environment</p>
 
-    <button type="submit" class="btn">Login</button>
-  </form>
+    <div class="security-status">
+      <span class="status-dot"></span>
+      Secure Access Portal
+    </div>
 
-  <div class="link">Don't have an account? <a href="/register">Register here</a></div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/login">
+
+      <div class="field">
+        <label>Username</label>
+        <div class="input-wrap">
+          <input
+            type="text"
+            name="username"
+            placeholder="Enter your username"
+            required
+            autocomplete="off">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input
+            type="password"
+            name="password"
+            placeholder="Enter your password"
+            required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Login Securely &rarr;</button>
+
+    </form>
+
+    <div class="link">
+      Don't have an account?
+      <a href="/register">Register here</a>
+    </div>
+
+    <div class="footer-note">
+      <span>◆</span>
+      PROTECTED ACCESS
+      <span>◆</span>
+    </div>
+
+  </div>
 </div>
+
 </body>
 </html>

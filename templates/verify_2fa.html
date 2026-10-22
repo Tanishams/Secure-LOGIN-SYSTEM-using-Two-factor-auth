@@ -2,48 +2,662 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verify 2FA - Secure Login</title>
+
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; min-height: 100vh;
-         display: flex; align-items: center; justify-content: center; }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px;
-          padding: 40px; width: 100%; max-width: 400px; text-align: center; }
-  h2 { color: #f1f5f9; font-size: 20px; margin-bottom: 8px; }
-  .sub { color: #94a3b8; font-size: 13px; margin-bottom: 28px; }
-  label { display: block; color: #cbd5e1; font-size: 13px; margin-bottom: 8px;
-          font-weight: 500; text-align: left; }
-  input { width: 100%; padding: 14px; background: #0f172a; border: 1px solid #334155;
-          border-radius: 8px; color: #f1f5f9; font-size: 24px; text-align: center;
-          letter-spacing: .3em; outline: none; margin-bottom: 16px; }
-  input:focus { border-color: #3b82f6; }
-  .btn { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none;
-         border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .btn:hover { background: #2563eb; }
-  .back { display: block; margin-top: 16px; color: #64748b; font-size: 13px; text-decoration: none; }
-  .flash { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
-  .flash.error { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg: #050816;
+    --panel: rgba(13, 24, 45, .91);
+    --cyan: #22d3ee;
+    --blue: #3b82f6;
+    --purple: #a78bfa;
+    --text: #eff8ff;
+    --muted: #91a8c7;
+  }
+
+  html {
+    min-height: 100%;
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 28px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    isolation: isolate;
+    overflow-x: hidden;
+  }
+
+  /* FUTURISTIC CYBER BACKGROUND */
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 10% 15%,
+        rgba(37, 99, 235, .25), transparent 38%),
+      radial-gradient(ellipse at 90% 20%,
+        rgba(34, 211, 238, .17), transparent 34%),
+      radial-gradient(ellipse at 75% 90%,
+        rgba(124, 58, 237, .18), transparent 38%),
+      #050816;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -40%;
+    z-index: -2;
+    pointer-events: none;
+    opacity: .42;
+    background-image:
+      linear-gradient(
+        rgba(56, 189, 248, .07) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(56, 189, 248, .07) 1px,
+        transparent 1px
+      );
+    background-size: 48px 48px;
+    transform: perspective(850px) rotateX(12deg);
+    animation: gridMove 24s linear infinite;
+    mask-image: linear-gradient(
+      to bottom, transparent, black 20%, black 80%, transparent
+    );
+  }
+
+  .ambient {
+    position: fixed;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    filter: blur(95px);
+    opacity: .2;
+    pointer-events: none;
+    z-index: -1;
+    animation: ambientFloat 9s ease-in-out infinite alternate;
+  }
+
+  .ambient.one {
+    top: 5%;
+    left: -110px;
+    background: #2563eb;
+  }
+
+  .ambient.two {
+    right: -100px;
+    bottom: 5%;
+    background: #06b6d4;
+    animation-delay: -4s;
+  }
+
+  @keyframes gridMove {
+    from { background-position: 0 0; }
+    to { background-position: 96px 48px; }
+  }
+
+  @keyframes ambientFloat {
+    from { transform: translate(0, 0); }
+    to { transform: translate(28px, 38px); }
+  }
+
+  /* NEON CARD FRAME */
+
+  .card-wrap {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    max-width: 410px;
+    animation: cardEnter .8s ease both;
+  }
+
+  .card-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    border-radius: 25px;
+    background: conic-gradient(
+      from 0deg,
+      transparent,
+      rgba(34, 211, 238, .95),
+      transparent 28%,
+      rgba(59, 130, 246, .9),
+      transparent 65%,
+      rgba(167, 139, 250, .8),
+      transparent
+    );
+    filter: blur(13px);
+    opacity: .36;
+    animation: borderRotate 12s linear infinite;
+    transition: opacity .35s ease, filter .35s ease;
+  }
+
+  .card-wrap:hover::before {
+    opacity: .8;
+    filter: blur(18px);
+  }
+
+  @keyframes borderRotate {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes cardEnter {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* GLASSMORPHISM CARD */
+
+  .card {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 36px 34px 29px;
+    border-radius: 19px;
+    background: var(--panel);
+    border: 1px solid rgba(96, 165, 250, .26);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow:
+      0 25px 75px rgba(0, 0, 0, .42),
+      inset 0 1px 0 rgba(255, 255, 255, .045);
+    text-align: center;
+    transition: border-color .35s ease, box-shadow .35s ease;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--cyan),
+      var(--blue),
+      var(--purple),
+      transparent
+    );
+  }
+
+  .card::after {
+    content: "";
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    top: -150px;
+    right: -120px;
+    border-radius: 50%;
+    background: rgba(34, 211, 238, .09);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+
+  .card-wrap:hover .card {
+    border-color: rgba(34, 211, 238, .42);
+    box-shadow:
+      0 30px 85px rgba(0, 0, 0, .48),
+      0 0 30px rgba(34, 211, 238, .07),
+      inset 0 1px 0 rgba(255, 255, 255, .07);
+  }
+
+  /* HOLOGRAPHIC PHONE ICON */
+
+  .logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 23px;
+  }
+
+  .logo-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 78px;
+    height: 78px;
+    border-radius: 23px;
+    font-size: 37px;
+    background: linear-gradient(
+      145deg,
+      rgba(34, 211, 238, .16),
+      rgba(59, 130, 246, .17),
+      rgba(167, 139, 250, .11)
+    );
+    border: 1px solid rgba(34, 211, 238, .35);
+    box-shadow:
+      0 0 30px rgba(34, 211, 238, .14),
+      inset 0 0 20px rgba(59, 130, 246, .1);
+    animation: logoPulse 3s ease-in-out infinite;
+    transition: transform .35s ease;
+  }
+
+  .logo-box::before {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border: 1px solid rgba(34, 211, 238, .2);
+    border-radius: 28px;
+    animation: logoRing 4s ease-in-out infinite;
+  }
+
+  @keyframes logoPulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(34, 211, 238, .1);
+    }
+    50% {
+      box-shadow:
+        0 0 35px rgba(34, 211, 238, .27),
+        0 0 55px rgba(59, 130, 246, .12);
+    }
+  }
+
+  @keyframes logoRing {
+    0%, 100% { opacity: .35; transform: scale(1); }
+    50% { opacity: .8; transform: scale(1.06); }
+  }
+
+  .card-wrap:hover .logo-box {
+    transform: translateY(-3px) rotate(-4deg);
+  }
+
+  h2 {
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    margin-bottom: 10px;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.75;
+    margin-bottom: 24px;
+  }
+
+  /* DECORATIVE SECURITY STATUS */
+
+  .security-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 11px 8px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(34, 211, 238, .16);
+    border-radius: 10px;
+    background: rgba(34, 211, 238, .045);
+    color: #67e8f9;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 12px rgba(52, 211, 153, .8);
+    animation: dotPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+  }
+
+  /* FLASH MESSAGES */
+
+  .flash {
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: left;
+    overflow-wrap: anywhere;
+    animation: messageEnter .4s ease both;
+  }
+
+  .flash.error {
+    background: rgba(69, 10, 10, .65);
+    color: #fca5a5;
+    border: 1px solid rgba(248, 113, 113, .42);
+    box-shadow: 0 0 20px rgba(248, 113, 113, .05);
+  }
+
+  @keyframes messageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(-7px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* OTP FORM */
+
+  form {
+    text-align: left;
+  }
+
+  label {
+    display: block;
+    color: #d2e2f5;
+    font-size: 12px;
+    font-weight: 650;
+    margin-bottom: 11px;
+    transition: color .25s ease;
+  }
+
+  .otp-wrap {
+    position: relative;
+    margin-bottom: 19px;
+  }
+
+  .otp-wrap::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    box-shadow: 0 0 12px rgba(34, 211, 238, .55);
+    transform: translateX(-50%);
+    transition: width .35s ease;
+    pointer-events: none;
+  }
+
+  form:focus-within label {
+    color: var(--cyan);
+  }
+
+  input {
+    display: block;
+    width: 100%;
+    padding: 16px 12px;
+    background: rgba(3, 10, 24, .78);
+    border: 1px solid #293e5b;
+    border-radius: 10px;
+    color: #f1f7ff;
+    font-family: 'Courier New', monospace;
+    font-size: 25px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: .42em;
+    outline: none;
+    margin: 0;
+    transition:
+      border-color .25s ease,
+      box-shadow .25s ease,
+      background .25s ease;
+  }
+
+  input::placeholder {
+    color: #415674;
+    opacity: 1;
+  }
+
+  input:hover {
+    border-color: #3c628b;
+    background: rgba(5, 15, 34, .96);
+  }
+
+  input:focus {
+    border-color: rgba(34, 211, 238, .85);
+    background: rgba(5, 15, 34, .98);
+    box-shadow:
+      0 0 0 3px rgba(34, 211, 238, .08),
+      0 0 25px rgba(34, 211, 238, .08);
+  }
+
+  .otp-wrap:focus-within::after {
+    width: 100%;
+  }
+
+  /* VERIFY BUTTON WITH LIGHT SWEEP */
+
+  .btn {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 14px 12px;
+    background: linear-gradient(110deg, #2563eb, #0ea5e9);
+    color: #fff;
+    border: 1px solid rgba(125, 211, 252, .35);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 750;
+    letter-spacing: .3px;
+    cursor: pointer;
+    box-shadow:
+      0 5px 20px rgba(37, 99, 235, .22),
+      inset 0 1px 0 rgba(255, 255, 255, .12);
+    transition:
+      transform .25s ease,
+      box-shadow .25s ease,
+      background .25s ease;
+  }
+
+  .btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -130%;
+    width: 65%;
+    height: 100%;
+    transform: skewX(-25deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, .3),
+      transparent
+    );
+    transition: left .65s ease;
+  }
+
+  .btn:hover {
+    background: linear-gradient(110deg, #1d4ed8, #0284c7);
+    transform: translateY(-3px);
+    box-shadow:
+      0 10px 30px rgba(37, 99, 235, .35),
+      0 0 25px rgba(34, 211, 238, .2);
+  }
+
+  .btn:hover::before {
+    left: 150%;
+  }
+
+  .btn:active {
+    transform: translateY(0);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+  }
+
+  /* BACK TO LOGIN */
+
+  .back {
+    display: inline-block;
+    margin-top: 22px;
+    color: #8199b8;
+    font-size: 12px;
+    line-height: 1.7;
+    text-decoration: none;
+    transition: color .25s ease, text-shadow .25s ease;
+  }
+
+  .back:hover {
+    color: #67e8f9;
+    text-shadow: 0 0 14px rgba(34, 211, 238, .4);
+  }
+
+  .back:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .footer-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border-top: 1px solid rgba(148, 163, 184, .13);
+    padding-top: 18px;
+    margin-top: 24px;
+    color: #647e9f;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+  }
+
+  .footer-note span {
+    color: var(--cyan);
+    text-shadow: 0 0 10px rgba(34, 211, 238, .45);
+  }
+
+  /* RESPONSIVE */
+
+  @media (max-width: 480px) {
+    body {
+      padding: 22px 14px;
+    }
+
+    .card {
+      padding: 29px 22px 25px;
+      border-radius: 16px;
+    }
+
+    h2 {
+      font-size: 21px;
+    }
+
+    .logo-box {
+      width: 68px;
+      height: 68px;
+      font-size: 33px;
+    }
+
+    input {
+      font-size: 22px;
+      letter-spacing: .35em;
+    }
+  }
+
+  /* ACCESSIBILITY */
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: .01ms !important;
+    }
+  }
 </style>
 </head>
+
 <body>
-<div class="card">
-  <div style="font-size:40px;margin-bottom:16px">📱</div>
-  <h2>Two-Factor Verification</h2>
-  <p class="sub">Enter the 6-digit code from your Google Authenticator app.</p>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="flash {{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endwith %}
+<div class="ambient one"></div>
+<div class="ambient two"></div>
 
-  <form method="POST">
-    <label>Authentication Code</label>
-    <input type="text" name="otp" maxlength="6" placeholder="000000" required autofocus autocomplete="off">
-    <button type="submit" class="btn">Verify</button>
-  </form>
+<div class="card-wrap">
+  <div class="card">
 
-  <a href="/login" class="back">Back to login</a>
+    <div class="logo">
+      <div class="logo-box">📱</div>
+    </div>
+
+    <h2>Two-Factor Verification</h2>
+    <p class="sub">
+      Enter the 6-digit code from your<br>
+      Google Authenticator app.
+    </p>
+
+    <div class="security-status">
+      <span class="status-dot"></span>
+      Identity Verification Portal
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <label>Authentication Code</label>
+
+      <div class="otp-wrap">
+        <input
+          type="text"
+          name="otp"
+          maxlength="6"
+          placeholder="000000"
+          required
+          autofocus
+          autocomplete="off">
+      </div>
+
+      <button type="submit" class="btn">
+        Verify Identity &rarr;
+      </button>
+    </form>
+
+    <a href="/login" class="back">
+      &larr; Back to login
+    </a>
+
+    <div class="footer-note">
+      <span>◆</span>
+      SECURE AUTHENTICATION
+      <span>◆</span>
+    </div>
+
+  </div>
 </div>
+
 </body>
 </html>

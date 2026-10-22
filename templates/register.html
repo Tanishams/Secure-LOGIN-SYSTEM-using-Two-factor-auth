@@ -4,59 +4,759 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Register - Secure Login</title>
+
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; min-height: 100vh;
-         display: flex; align-items: center; justify-content: center; }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px;
-          padding: 40px; width: 100%; max-width: 420px; }
-  .logo { text-align: center; margin-bottom: 28px; }
-  .logo span { font-size: 36px; }
-  h2 { color: #f1f5f9; font-size: 22px; text-align: center; margin-bottom: 6px; }
-  .sub { color: #94a3b8; font-size: 13px; text-align: center; margin-bottom: 24px; }
-  label { display: block; color: #cbd5e1; font-size: 13px; margin-bottom: 5px; font-weight: 500; }
-  input { width: 100%; padding: 11px 14px; background: #0f172a; border: 1px solid #334155;
-          border-radius: 8px; color: #f1f5f9; font-size: 14px; margin-bottom: 16px; outline: none; }
-  input:focus { border-color: #3b82f6; }
-  .btn { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none;
-         border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
-  .btn:hover { background: #2563eb; }
-  .link { text-align: center; margin-top: 20px; color: #94a3b8; font-size: 13px; }
-  .link a { color: #3b82f6; text-decoration: none; }
-  .flash { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
-  .flash.error   { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
-  .flash.success { background: #052e16; color: #86efac; border: 1px solid #14532d; }
-  .hint { font-size: 11px; color: #64748b; margin-top: -12px; margin-bottom: 14px; }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg: #050816;
+    --panel: rgba(13, 24, 45, 0.88);
+    --cyan: #22d3ee;
+    --blue: #3b82f6;
+    --purple: #a78bfa;
+    --text: #eff8ff;
+    --muted: #91a8c7;
+  }
+
+  html {
+    min-height: 100%;
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 18px;
+    color: var(--text);
+    position: relative;
+    isolation: isolate;
+    overflow-x: hidden;
+  }
+
+  /* ==========================================
+     ANIMATED CYBERSECURITY BACKGROUND
+     ========================================== */
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 12% 15%,
+        rgba(37, 99, 235, 0.23), transparent 36%),
+      radial-gradient(ellipse at 90% 18%,
+        rgba(34, 211, 238, 0.15), transparent 32%),
+      radial-gradient(ellipse at 75% 90%,
+        rgba(124, 58, 237, 0.17), transparent 38%),
+      radial-gradient(ellipse at 25% 85%,
+        rgba(8, 145, 178, 0.09), transparent 32%),
+      #050816;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: -2;
+    pointer-events: none;
+    opacity: 0.45;
+    background-image:
+      linear-gradient(
+        rgba(56, 189, 248, 0.065) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(56, 189, 248, 0.065) 1px,
+        transparent 1px
+      );
+    background-size: 48px 48px;
+    transform: perspective(850px) rotateX(12deg);
+    animation: gridMove 25s linear infinite;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      black 18%,
+      black 82%,
+      transparent
+    );
+  }
+
+  @keyframes gridMove {
+    from { background-position: 0 0; }
+    to   { background-position: 96px 48px; }
+  }
+
+  /* Decorative ambient lights */
+
+  .ambient {
+    position: fixed;
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    filter: blur(95px);
+    opacity: 0.19;
+    pointer-events: none;
+    z-index: -1;
+    animation: ambientFloat 9s ease-in-out infinite alternate;
+  }
+
+  .ambient.one {
+    top: 8%;
+    left: -100px;
+    background: #2563eb;
+  }
+
+  .ambient.two {
+    bottom: 5%;
+    right: -100px;
+    background: #06b6d4;
+    animation-delay: -4s;
+  }
+
+  @keyframes ambientFloat {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(30px, 45px); }
+  }
+
+  /* ==========================================
+     OUTER CARD GLOW
+     ========================================== */
+
+  .card-wrap {
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    isolation: isolate;
+    animation: cardEnter 0.8s ease both;
+  }
+
+  .card-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 24px;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(34, 211, 238, 0.85) 65deg,
+      transparent 130deg,
+      rgba(59, 130, 246, 0.8) 220deg,
+      transparent 290deg,
+      rgba(167, 139, 250, 0.65) 340deg,
+      transparent 360deg
+    );
+    filter: blur(13px);
+    opacity: 0.3;
+    z-index: -1;
+    animation: borderRotate 12s linear infinite;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+  }
+
+  .card-wrap:hover::before {
+    opacity: 0.72;
+    filter: blur(17px);
+  }
+
+  @keyframes borderRotate {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes cardEnter {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* ==========================================
+     GLASSMORPHISM REGISTRATION CARD
+     ========================================== */
+
+  .card {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 37px 35px 30px;
+    border-radius: 19px;
+    background: var(--panel);
+    border: 1px solid rgba(96, 165, 250, 0.25);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow:
+      0 25px 75px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--cyan),
+      var(--blue),
+      var(--purple),
+      transparent
+    );
+    opacity: 0.8;
+  }
+
+  .card::after {
+    content: "";
+    position: absolute;
+    top: -130px;
+    right: -120px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(34, 211, 238, 0.08);
+    filter: blur(55px);
+    pointer-events: none;
+    transition: background 0.4s ease;
+  }
+
+  .card-wrap:hover .card {
+    border-color: rgba(34, 211, 238, 0.4);
+    box-shadow:
+      0 30px 85px rgba(0, 0, 0, 0.48),
+      0 0 30px rgba(34, 211, 238, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .card-wrap:hover .card::after {
+    background: rgba(34, 211, 238, 0.13);
+  }
+
+  /* ==========================================
+     SECURITY LOGO
+     ========================================== */
+
+  .logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+
+  .logo-box {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    background: linear-gradient(
+      145deg,
+      rgba(34, 211, 238, 0.15),
+      rgba(59, 130, 246, 0.16),
+      rgba(167, 139, 250, 0.1)
+    );
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    box-shadow:
+      0 0 28px rgba(34, 211, 238, 0.12),
+      inset 0 0 18px rgba(59, 130, 246, 0.1);
+    animation: logoPulse 3s ease-in-out infinite;
+    transition: transform 0.35s ease, border-radius 0.35s ease;
+  }
+
+  .logo-box::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    border-radius: 26px;
+    animation: logoRing 4s ease-in-out infinite;
+  }
+
+  @keyframes logoPulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.1);
+    }
+    50% {
+      box-shadow:
+        0 0 35px rgba(34, 211, 238, 0.25),
+        0 0 55px rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  @keyframes logoRing {
+    0%, 100% {
+      opacity: 0.35;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.06);
+    }
+  }
+
+  .card-wrap:hover .logo-box {
+    transform: translateY(-3px) rotate(-3deg);
+    border-radius: 25px;
+  }
+
+  h2 {
+    color: var(--text);
+    font-size: 27px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: -0.7px;
+    margin-bottom: 8px;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 23px;
+  }
+
+  /* Security status indicator */
+
+  .security-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-bottom: 28px;
+    padding: 10px;
+    border-radius: 9px;
+    background: rgba(34, 211, 238, 0.045);
+    border: 1px solid rgba(34, 211, 238, 0.12);
+    color: #67e8f9;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.85);
+    animation: dotPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  /* ==========================================
+     INPUT FIELDS
+     ========================================== */
+
+  .field {
+    margin-bottom: 19px;
+    position: relative;
+  }
+
+  label {
+    display: block;
+    color: #d2e2f5;
+    font-size: 12px;
+    margin-bottom: 9px;
+    font-weight: 650;
+    letter-spacing: 0.25px;
+    transition: color 0.25s ease;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-wrap::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+    transform: translateX(-50%);
+    transition: width 0.35s ease;
+    pointer-events: none;
+  }
+
+  input {
+    display: block;
+    width: 100%;
+    padding: 14px 15px;
+    background: rgba(3, 10, 24, 0.76);
+    border: 1px solid #293e5b;
+    border-radius: 10px;
+    color: #f1f7ff;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    margin: 0;
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      background 0.25s ease;
+  }
+
+  input::placeholder {
+    color: #657e9e;
+    transition: color 0.25s ease;
+  }
+
+  input:hover {
+    border-color: #3c628b;
+    background: rgba(5, 15, 34, 0.95);
+  }
+
+  .field:focus-within label {
+    color: var(--cyan);
+  }
+
+  .field:focus-within .input-wrap::after {
+    width: 100%;
+  }
+
+  input:focus {
+    border-color: rgba(34, 211, 238, 0.8);
+    background: rgba(5, 15, 34, 0.98);
+    box-shadow:
+      0 0 0 3px rgba(34, 211, 238, 0.08),
+      0 0 22px rgba(34, 211, 238, 0.07);
+  }
+
+  input:focus::placeholder {
+    color: #8ca5c5;
+  }
+
+  /* Original validation hints */
+
+  .hint {
+    position: relative;
+    font-size: 10px;
+    color: #7792b5;
+    margin-top: 8px;
+    margin-bottom: 0;
+    line-height: 1.6;
+    transition: color 0.25s ease;
+  }
+
+  .field:focus-within .hint {
+    color: #8fdff0;
+  }
+
+  /* ==========================================
+     CREATE ACCOUNT BUTTON
+     ========================================== */
+
+  .btn {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(110deg, #2563eb, #0ea5e9);
+    color: white;
+    border: 1px solid rgba(125, 211, 252, 0.35);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 750;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    margin-top: 5px;
+    box-shadow:
+      0 5px 20px rgba(37, 99, 235, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      background 0.25s ease;
+  }
+
+  .btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -130%;
+    width: 65%;
+    height: 100%;
+    transform: skewX(-25deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left 0.65s ease;
+  }
+
+  .btn:hover {
+    background: linear-gradient(110deg, #1d4ed8, #0284c7);
+    transform: translateY(-3px);
+    box-shadow:
+      0 10px 30px rgba(37, 99, 235, 0.35),
+      0 0 25px rgba(34, 211, 238, 0.2);
+  }
+
+  .btn:hover::before {
+    left: 150%;
+  }
+
+  .btn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.22);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+  }
+
+  /* ==========================================
+     FLASH MESSAGES
+     ========================================== */
+
+  .flash {
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    animation: messageEnter 0.4s ease both;
+  }
+
+  .flash.error {
+    background: rgba(69, 10, 10, 0.62);
+    color: #fca5a5;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    box-shadow: 0 0 20px rgba(248, 113, 113, 0.055);
+  }
+
+  .flash.success {
+    background: rgba(5, 46, 22, 0.62);
+    color: #86efac;
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.055);
+  }
+
+  @keyframes messageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(-7px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ==========================================
+     LOGIN LINK AND FOOTER
+     ========================================== */
+
+  .link {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .link a {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: 700;
+    margin-left: 3px;
+    transition: color 0.25s ease, text-shadow 0.25s ease;
+  }
+
+  .link a:hover {
+    color: #a5f3fc;
+    text-shadow: 0 0 14px rgba(34, 211, 238, 0.55);
+  }
+
+  .link a:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .footer-note {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 9px;
+    margin-top: 25px;
+    padding-top: 19px;
+    border-top: 1px solid rgba(148, 163, 184, 0.13);
+    color: #647e9f;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+  }
+
+  .footer-note span {
+    color: var(--cyan);
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.45);
+  }
+
+  /* ==========================================
+     MOBILE RESPONSIVENESS
+     ========================================== */
+
+  @media (max-width: 480px) {
+    body {
+      padding: 22px 15px;
+    }
+
+    .card {
+      padding: 29px 22px 25px;
+      border-radius: 16px;
+    }
+
+    h2 {
+      font-size: 24px;
+    }
+
+    .logo-box {
+      width: 68px;
+      height: 68px;
+      font-size: 33px;
+    }
+
+    .security-status {
+      font-size: 9px;
+      letter-spacing: 1.2px;
+    }
+
+    input {
+      padding: 13px;
+    }
+  }
+
+  /* Respect accessibility preferences */
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 </style>
 </head>
+
 <body>
-<div class="card">
-  <div class="logo"><span>🔐</span></div>
-  <h2>Create Account</h2>
-  <p class="sub">Sign up for a secure account</p>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="flash {{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endwith %}
+<div class="ambient one"></div>
+<div class="ambient two"></div>
 
-  <form method="POST" action="/register">
-    <label>Username</label>
-    <input type="text" name="username" placeholder="e.g. john_doe" required autocomplete="off">
-    <p class="hint">3-20 characters, letters/numbers/underscore</p>
+<div class="card-wrap">
+  <div class="card">
 
-    <label>Email Address</label>
-    <input type="email" name="email" placeholder="you@example.com" required>
+    <div class="logo">
+      <div class="logo-box">🔐</div>
+    </div>
 
-    <label>Password</label>
-    <input type="password" name="password" placeholder="Min 8 chars, A-Z, a-z, 0-9" required>
-    <p class="hint">Must include uppercase, lowercase, and a number</p>
+    <h2>Create Account</h2>
+    <p class="sub">Join the secure environment</p>
 
-    <button type="submit" class="btn">Create Account</button>
-  </form>
+    <div class="security-status">
+      <span class="status-dot"></span>
+      Secure Registration Portal
+    </div>
 
-  <div class="link">Already have an account? <a href="/login">Login here</a></div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/register">
+
+      <div class="field">
+        <label>Username</label>
+        <div class="input-wrap">
+          <input
+            type="text"
+            name="username"
+            placeholder="e.g. john_doe"
+            required
+            autocomplete="off">
+        </div>
+        <p class="hint">3-20 characters, letters/numbers/underscore</p>
+      </div>
+
+      <div class="field">
+        <label>Email Address</label>
+        <div class="input-wrap">
+          <input
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input
+            type="password"
+            name="password"
+            placeholder="Min 8 chars, A-Z, a-z, 0-9"
+            required>
+        </div>
+        <p class="hint">Must include uppercase, lowercase, and a number</p>
+      </div>
+
+      <button type="submit" class="btn">Create Account &rarr;</button>
+
+    </form>
+
+    <div class="link">
+      Already have an account?
+      <a href="/login">Login here</a>
+    </div>
+
+    <div class="footer-note">
+      <span>◆</span>
+      ENCRYPTED ENVIRONMENT
+      <span>◆</span>
+    </div>
+
+  </div>
 </div>
+
 </body>
 </html>
